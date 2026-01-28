@@ -16,10 +16,11 @@ output_file <- args[3]
 
 library(rentrez)
 library(tidyverse)
+library(readr)
 
 ### ------------------ Prepare input data --------------
 
-df <- read.csv(input_file, stringsAsFactors = FALSE)
+df <- read_delim(input_file, stringsAsFactors = FALSE)
 
 if (!column_name %in% colnames(df)) {
 	stop("Column '", column_name, "' not found in input file")
