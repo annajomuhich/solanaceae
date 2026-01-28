@@ -35,7 +35,7 @@ xp_vec <- unique(
 	)
 )
 
-xp_vec <- xp_vec[1:10] #subset for testing
+#xp_vec <- xp_vec[1:10] #subset for testing
 
 ### ----------------- Define function ----------------------------
 
@@ -46,7 +46,7 @@ xp_to_loc_df <- function(xp_ids) {
 	
 	data.frame(
 		protein_id = xp_ids,
-		loc_id = vapply(
+		gene_id = vapply(
 			seq_along(xp_ids),
 			function(i) {
 				prot <- xp_ids[i]
