@@ -89,7 +89,7 @@ message("Converting protein IDs to LOC IDs for ", column_name, "...")
 loc_df <- xp_to_loc_df(xp_vec)
 
 #create directory if it doesn't exist
-out_dir <- dirname(out_file)
+out_dir <- dirname(output_file)
 if (!dir.exists(out_dir)) {
 	dir.create(out_dir, recursive = TRUE)
 }
