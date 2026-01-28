@@ -19,13 +19,14 @@ library(tidyverse)
 library(readr)
 
 ### ------------------ Prepare input data --------------
-
+message("Loading input file ", input_file, "...")
 df <- read_delim(input_file)
 
 if (!column_name %in% colnames(df)) {
 	stop("Column '", column_name, "' not found in input file")
 }
 
+message("Pulling out protein IDs for ", column_name, "...")
 xp_vec <- unique(
 	trimws(
 		unlist(
@@ -84,7 +85,7 @@ xp_to_loc_df <- function(xp_ids) {
 }
 
 ### --------- Run and write output -------------------
-
+message("Converting protein IDs to LOC IDs for ", column_name, "...")
 loc_df <- xp_to_loc_df(xp_vec)
 
 #create directory if it doesn't exist
@@ -95,6 +96,7 @@ if (!dir.exists(out_dir)) {
 
 #write
 loc_df %>% write.csv(output_file, row.names = F)
+message("Wrote output file to ", output_file, "!")
 
 
 
