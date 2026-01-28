@@ -85,6 +85,14 @@ xp_to_loc_df <- function(xp_ids) {
 ### --------- Run and write output -------------------
 
 loc_df <- xp_to_loc_df(xp_vec)
+
+#create directory if it doesn't exist
+out_dir <- dirname(out_file)
+if (!dir.exists(out_dir)) {
+	dir.create(out_dir, recursive = TRUE)
+}
+
+#write
 loc_df %>% write.csv(output_file, row.names = F)
 
 
