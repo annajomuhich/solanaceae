@@ -17,5 +17,6 @@ COLUMN_NAME=$2
 OUTPUT_FILE=$3
 
 Rscript ~/solanaceae/host_proteinID_key.R \
-"$COUNTS_FILE1" "$COUNTS_FILE2" \
-"$OUTPUT_DIR"
+"$INPUT_FILE" \
+"$COLUMN_NAME" \
+"$OUTPUT_FILE"
