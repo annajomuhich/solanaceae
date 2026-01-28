@@ -20,7 +20,7 @@ library(readr)
 
 ### ------------------ Prepare input data --------------
 
-df <- read_delim(input_file, stringsAsFactors = FALSE)
+df <- read_delim(input_file)
 
 if (!column_name %in% colnames(df)) {
 	stop("Column '", column_name, "' not found in input file")
