@@ -20,7 +20,16 @@ library(readr)
 
 ### ------------------ Prepare input data --------------
 message("Loading input file ", input_file, "...")
-df <- read_delim(input_file)
+
+ext <- tools::file_ext(input_file)
+
+df <- if (ext == "tsv") {
+	readr::read_delim(input_file, delim = "\t")
+} else if (ext == "csv") {
+	read.csv(input_file, stringsAsFactors = FALSE)
+} else {
+	stop("Unsupported file type: .", ext)
+}
 
 if (!column_name %in% colnames(df)) {
 	stop("Column '", column_name, "' not found in input file")
