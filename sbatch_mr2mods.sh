@@ -21,6 +21,9 @@ OUTPUT_DIR="$2"
 # Remove trailing slash from OUTPUT_DIR if present
 OUTPUT_DIR="${OUTPUT_DIR%/}"
 
+# Create output directory if it doesn't exist
+mkdir -p "$OUTPUT_DIR"
+
 # =====================================
 
 SCRIPT_DIR=/home/ajmuhich/mr2mods/scripts
