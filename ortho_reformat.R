@@ -15,24 +15,24 @@ ortho <- ortho %>%
 	dplyr::rename(Ca = GCF_002878395.1_UCD10Xv1.1_protein,
 								Sl = GCF_036512215.1_SLM_r2.1_protein)
 
-#remove NA values
-ortho$Ca <- vapply(
-	strsplit(ortho$Ca, ",\\s*"),
-	\(x) paste(x[x != "NA"], collapse = ", "),
-	character(1)
-)
-ortho$Sl <- vapply(
-	strsplit(ortho$Sl, ",\\s*"),
-	\(x) paste(x[x != "NA"], collapse = ", "),
-	character(1)
-)
+grep("NA", ortho$Sl)
 
-ortho %>% filter(!startsWith(Sl, "LOC")) %>% pull(Sl) %>% unique()
+# #remove NA values
+# ortho$Ca <- vapply(
+# 	strsplit(ortho$Ca, ",\\s*"),
+# 	\(x) paste(x[x != "NA"], collapse = ", "),
+# 	character(1)
+# )
+# ortho$Sl <- vapply(
+# 	strsplit(ortho$Sl, ",\\s*"),
+# 	\(x) paste(x[x != "NA"], collapse = ", "),
+# 	character(1)
+# )
 
 #get protein ID to gene ID
-ca_ids <- read.csv("data/gene_descriptions/Pepper_Gene_Transcript_Protein_Mapping.csv") %>%
+ca_ids <- read.csv("data/gene_descriptions/pepper_proteinID_key.csv") %>%
 	dplyr::select(!transcript_id)
-sl_ids <- read.csv("data/gene_descriptions/Tomato_Gene_Transcript_Protein_Mapping.csv") %>%
+sl_ids <- read.csv("data/gene_descriptions/tomato_proteinID_key.csv") %>%
 	dplyr::select(!transcript_id)
 
 ca <- ortho %>%
