@@ -3,7 +3,7 @@
 #SBATCH -o /home/ajmuhich/slurm-log/mr2mods_stdout-%j.txt
 #SBATCH -e /home/ajmuhich/slurm-log/mr2mods_stderr-%j.txt
 #SBATCH -J mr2mods
-#SBATCH -t 8-00:00:00
+#SBATCH -t 4-00:00:00
 #SBATCH --mem 50G
 #SBATCH -n 8
 #SBATCH --mail-type=ALL
