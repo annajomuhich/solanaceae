@@ -20,8 +20,6 @@ QUERY="$1"
 DB="$2"
 OUTPUT_CSV="$3"
 
-mkdir -p $OUTPUT_DIR
-
 blastp \
     -query $QUERY \
     -db $DB \
@@ -30,4 +28,5 @@ blastp \
     -max_target_seqs 1 \
     -outfmt "6 qseqid sseqid pident length qcovs evalue bitscore stitle"
 
+module load R
 Rscript ~/solanaceae/blastp_reformat.R raw_out.tsv $DB $OUTPUT_CSV
