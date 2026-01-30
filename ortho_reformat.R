@@ -46,6 +46,8 @@ ca <- ortho %>%
 	rename(Ca = gene_id) %>%
 	dplyr::select(!row_id)
 
+any(is.na(ca))
+
 sl <- ortho %>%
 	mutate(row_id = row_number()) %>%
 	separate_rows(Sl, sep = ",\\s*") %>%
@@ -56,6 +58,8 @@ sl <- ortho %>%
 		.groups = "drop") %>%
 	rename(Sl = gene_id) %>%
 	dplyr::select(!row_id)
+
+any(is.na(sl))
 
 ortho <- ortho %>% select(Orthogroup)
 ortho <- cbind(ortho, ca, sl)
@@ -68,9 +72,7 @@ ortho_1tomany <- ortho[!grepl(",", ortho$Ca) & grepl(",", ortho$Sl), ]
 ortho_manyto1 <- ortho[grepl(",", ortho$Ca) & !grepl(",", ortho$Sl), ]
 ortho_manytomany <- ortho[grepl(",", ortho$Ca) & grepl(",", ortho$Sl), ]
 
-#There are some NAs in the 1to1 orthologs. Let's remove these
-
-
+any(is.na(ortho_1to1))
 
 #write these out for further analyses
 ortho %>% write.csv("data/ortho/orthofinder/reformatted_orthologs/CaSl_ortho_all.csv", row.names = F)

@@ -42,15 +42,20 @@ df %>% write.table("data/gcn/input/CaBc_normalized.matrix", sep="\t", quote = FA
 
 ### start here - ran into a bunch of funkiness with the sample IDs/genes here
 
+rm(list=ls())
 #load data
-host <- read.csv("data/norm_counts/Tomato_Host_TMM_CPM_Merged_SampleID_48hpiMock.csv") %>%
-	select(gene, sample_ID, cpm)
-host$sample_ID <- gsub("_Host", "", host$sample_ID)
-bcin <- read.csv("data/norm_counts/Tomato_B.cinerea_expression_long.csv") %>%
-	select(gene, expr_sample_ID, CPM) %>%
-	rename(cpm = CPM,
-				 sample_ID = expr_sample_ID)
+host <- read.csv("data/norm_counts/Tomato_Host_TMM_CPM_Merged_SampleID_48hpiMock.csv") #%>%
+bcin <- read.csv("data/norm_counts/Tomato_B.cinerea_expression_long.csv")
 
+#reformat to match
+host <- host %>% select(gene, sample_ID, cpm)
+host$sample_ID <- gsub("sum_", "", host$sample_ID)
+
+bcin <- bcin %>%
+	select(gene, sample_ID, CPM) %>%
+	rename(cpm = CPM)
+bcin$sample_ID <- gsub("sum_", "", bcin$sample_ID)
+	
 #bind dataframes together if colnames match
 if (all(colnames(host) == colnames(bcin))) {
 	df <- rbind(host, bcin)
