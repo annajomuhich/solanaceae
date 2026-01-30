@@ -1,6 +1,8 @@
 ### reformat blastp output
 ### January 2026 AJM
 
+library(tidyverse)
+
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 3) {
