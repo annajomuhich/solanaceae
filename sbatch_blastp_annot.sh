@@ -18,17 +18,14 @@ fi
 
 QUERY="$1"
 DB="$2"
-OUTPUT_DIR="$3"
-
-# Remove trailing slash from OUTPUT_DIR if present
-OUTPUT_DIR="${OUTPUT_DIR%/}"
+OUTPUT_TSV="$3"
 
 mkdir -p $OUTPUT_DIR
 
 blastp \
     -query $QUERY \
     -db $DB \
-    -out "${OUTPUT_DIR}/${QUERY}_${DB}_blastp.tsv" \
+    -out $OUTPUT_TSV \
     -evalue 1e-5 \
     -max_target_seqs 1 \
     -outfmt "7 qseqid sseqid pident length qcovs evalue bitscore"
