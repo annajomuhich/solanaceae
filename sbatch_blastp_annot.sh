@@ -28,4 +28,4 @@ blastp \
     -out $OUTPUT_TSV \
     -evalue 1e-5 \
     -max_target_seqs 1 \
-    -outfmt "6 qseqid sseqid pident length qcovs evalue bitscore"
+    -outfmt "6 qseqid sseqid pident length qcovs evalue bitscore stitle"
