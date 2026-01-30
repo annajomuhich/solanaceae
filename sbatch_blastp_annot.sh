@@ -1,3 +1,4 @@
+#!/bin/bash
 #SBATCH -o /home/ajmuhich/slurm-log/blastp_stdout-%j.txt
 #SBATCH -e /home/ajmuhich/slurm-log/blastp_stderr-%j.txt
 #SBATCH -J blastp
