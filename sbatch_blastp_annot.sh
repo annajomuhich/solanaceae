@@ -25,7 +25,7 @@ RAW_OUT="raw_out_${SLURM_JOB_ID}.tsv"
 blastp \
     -query $QUERY \
     -db $DB \
-    -out "$RAW_OUT \
+    -out $RAW_OUT \
     -evalue 1e-5 \
     -max_target_seqs 1 \
     -outfmt "6 qseqid sseqid pident length qcovs evalue bitscore stitle"
