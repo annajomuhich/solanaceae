@@ -15,7 +15,6 @@ output_file <- args[3]
 
 message("Loading input file ", input_file, "...")
 df <- read.delim(input_file, header = F)
-file.remove(input_file) #remove temporary input
 
 colnames(df) <- c("qseqid", "sseqid", "pident", "length", "qcovs", "evalue", "bitscore", "stitle")
 

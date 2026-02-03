@@ -20,13 +20,17 @@ QUERY="$1"
 DB="$2"
 OUTPUT_CSV="$3"
 
+RAW_OUT="raw_out_${SLURM_JOB_ID}.tsv"
+
 blastp \
     -query $QUERY \
     -db $DB \
-    -out raw_out.tsv \
+    -out "$RAW_OUT \
     -evalue 1e-5 \
     -max_target_seqs 1 \
     -outfmt "6 qseqid sseqid pident length qcovs evalue bitscore stitle"
 
 module load R
-Rscript ~/solanaceae/blastp_reformat.R raw_out.tsv $DB $OUTPUT_CSV
+Rscript ~/solanaceae/blastp_reformat.R $RAW_OUT $DB $OUTPUT_CSV
+
+rm $RAW_OUT
