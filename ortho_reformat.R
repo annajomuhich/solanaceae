@@ -72,7 +72,30 @@ ortho_1tomany <- ortho[!grepl(",", ortho$Ca) & grepl(",", ortho$Sl), ]
 ortho_manyto1 <- ortho[grepl(",", ortho$Ca) & !grepl(",", ortho$Sl), ]
 ortho_manytomany <- ortho[grepl(",", ortho$Ca) & grepl(",", ortho$Sl), ]
 
+#Checking for NAs in 1to1s
 any(is.na(ortho_1to1))
+
+#Checking for duplicate values in 1to1s
+dups_ca <- ortho_1to1$Ca[duplicated(ortho_1to1$Ca)]
+ortho_1to1 %>%
+	filter(Ca %in% dups_ca) %>%
+	arrange(Ca)
+dups_sl <- ortho_1to1$Sl[duplicated(ortho_1to1$Sl)]
+ortho_1to1 %>%
+	filter(Sl %in% dups_sl) %>%
+	arrange(Sl)
+
+#some orthogroups are duplicated. Remove these
+ortho_1to1 <- ortho_1to1 %>%
+	distinct(across(-Orthogroup), .keep_all = TRUE)
+
+#A few should be in the 1tomany category but ended up as 1to1s.
+#For now I'm just removing these since I don't plan to do anything with the 1tomanys.
+#It is only a few though.
+ortho_1to1 <- ortho_1to1 %>%
+	distinct(across(Ca), .keep_all = TRUE)
+ortho_1to1 <- ortho_1to1 %>%
+	distinct(across(Sl), .keep_all = TRUE)
 
 #write these out for further analyses
 ortho %>% write.csv("data/ortho/orthofinder/reformatted_orthologs/CaSl_ortho_all.csv", row.names = F)
