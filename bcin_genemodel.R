@@ -85,7 +85,8 @@ analyze_gene <- function(gene, df) {
 	anova <- car::Anova(model) %>%
 		as.data.frame() %>%
 		rownames_to_column("variable") %>%
-		mutate(gene = gene)
+		mutate(gene = gene) %>%
+		mutate(convergence_note = conv_note)
 	
 	fixed_var <- diag(vcov(model)$cond) %>%
 		as.data.frame() %>%
