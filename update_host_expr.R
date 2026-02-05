@@ -38,11 +38,10 @@ sl %>%
 	pull(gene) %>%
 	unique()
 
-annot_sl <- read.csv("data/gene_descriptions/tomato_annotations.csv") %>%
-	select(Name, gene_ID)
-annot_sl <- annot_sl[!duplicated(annot_sl), ] #removing duplicates created by protein id
+annot_sl <- read.csv("data/gene_descriptions/tomato_annotations.csv")
+annot_names <- annot_sl %>%	select(Name, gene_ID)
 
-sl_join <- left_join(sl, annot_sl, by = join_by("gene" == "Name"))
+sl_join <- left_join(sl, annot_names, by = join_by("gene" == "Name"))
 sl_join <- sl_join %>%
 	select(!gene) %>%
 	rename(gene = gene_ID)
@@ -58,4 +57,4 @@ sl_join <- sl_join %>% select(sample_ID,
 															gene,
 															cpm)
 
-sl %>% write.csv("data/norm_counts/Tomato_Host_expression.csv", row.names = F)
+sl_join %>% write.csv("data/norm_counts/Tomato_Host_expression.csv", row.names = F)

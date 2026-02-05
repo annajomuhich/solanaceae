@@ -78,6 +78,9 @@ analyze_gene <- function(gene, df) {
 	model <- glmmTMB(formula, data = df, family = nbinom2) %>%
 		suppressMessages()
 	
+	#collect convergence note
+	conv_note <- model$fit$message
+	
 	## ---- ANOVA + variance ----
 	anova <- car::Anova(model) %>%
 		as.data.frame() %>%
@@ -138,6 +141,8 @@ df_long <- df %>%
 							 names_to = "gene",
 							 values_to = "CPM")
 genes <- unique(df_long$gene)
+
+genes <- genes[1:10] #subset for testing
 
 #setup outputs
 results <- list()

@@ -91,11 +91,18 @@ prot <- read.csv("data/gene_descriptions/pepper_proteinID_key.csv") %>%
 ca <- left_join(ca, prot, by = join_by("gene_ID" == "gene_id"))
 
 #writing for now
-ca %>% write.csv("data/gene_descriptions/pepper_annotations.csv", row.names = F)
+#ca %>% write.csv("data/gene_descriptions/pepper_annotations.csv", row.names = F)
+
 #next: add descriptions
+cavsl <- read.csv("data/gene_descriptions/blastp/Pepper_v_Tomato_blastp.csv")
+cavat <- read.csv("data/gene_descriptions/blastp/Pepper_v_Arabidopsis_blastp.csv")
+blastp <- full_join(cavsl, cavat, by = "qseqid")
 
 ### ------------------ Tomato -------------------------------------------------
-sl <- read.csv("data/gene_descriptions/fromRitu_notusing/tomato_cleaned_gene_annotations.csv")
+rm(list=ls())
+
+sl <- read.csv("data/gene_descriptions/fromRitu_notusing/tomato_cleaned_gene_annotations.csv") %>%
+	distinct(Dbxref, .keep_all=TRUE) #get rid of duplicate
 
 #Make LOC ID column
 sl$gene_ID <- sl$Dbxref
@@ -177,12 +184,23 @@ go_by_gene <- left_join(go_by_gene, go_split, by = "GeneID")
 go_by_gene$GeneID <- as.character(go_by_gene$GeneID)
 sl <- left_join(sl, go_by_gene, by = join_by("ID_number" == "GeneID"))
 
-#adding protein IDs
+#adding protein IDs. Removing additional protein isoforms because I don't think they have a lot of different annotation info
 prot <- read.csv("data/gene_descriptions/tomato_proteinID_key.csv") %>%
 	select(!transcript_id) %>%
-	rename(protein_ID = protein_id)
+	rename(protein_ID = protein_id) %>%
+	distinct(gene_id, .keep_all = T) #just keeping the first occurrence of each gene ID/protein isoform
+
 sl <- left_join(sl, prot, by = join_by("gene_ID" == "gene_id"))
+
+#Add arabidopsis descriptions
+#Some arabidopsis blastp results have multiple matches. Keep only the one with the highest percent identity
+slvat <- read.csv("data/gene_descriptions/blastp/Tomato_v_Arabidopsis_blastp.csv") %>%
+	group_by(qseqid) %>%                 # group by qseqid
+	slice_max(arabidopsis_pident, n = 1) %>%  # keep row(s) with max arabidopsis_pident
+	ungroup() %>%
+	distinct(qseqid, .keep_all = T) #this is to get rid of any remaining ones that might have the same % identity
+
+sl <- left_join(sl, slvat, by = join_by(protein_ID == qseqid))
 
 #writing for now
 sl %>% write.csv("data/gene_descriptions/tomato_annotations.csv", row.names = F)
-#next: add descriptions
