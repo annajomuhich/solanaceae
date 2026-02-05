@@ -107,6 +107,7 @@ analyze_gene <- function(gene, df) {
 	
 	anova <- full_join(anova, var_sums, by = "variable") %>%
 		select(gene, everything())
+	anova$gene <- gene
 	
 	## ---- EMMs ----
 	emm_sum <- emmeans(model, ~ iso_name + genotype) %>%
