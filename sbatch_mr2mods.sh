@@ -44,5 +44,11 @@ for d in "${D_VALUES[@]}"; do
   echo "[$(date)] Finished network/module creation with decay rate $d."
 done
 
+echo "[$(date)] Reorganizing network outputs."
+mkdir raw_networks
+mv *.abc raw_networks
+mv *.csv raw_networks
+mv *.txt raw_networks
+
 echo "[$(date)] All tasks completed."
 

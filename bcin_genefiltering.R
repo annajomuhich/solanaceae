@@ -4,7 +4,7 @@
 
 
 ### Determine which genes to remove ======================================
-df <- read.csv("data/bcin_expr/bcin_genemodel_20260115/unfiltered/bcin_adjusted_emmeans.csv")
+df <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_adjusted_emmeans.csv")
 
 #Quick look at overall gene count
 ggplot(df, aes(x = emmean)) +

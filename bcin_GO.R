@@ -80,7 +80,7 @@ deg_Ca <- deg %>% filter(significance == "Pepper Upregulated") %>% pull(gene)
 result <- run_topGO(deg_Ca, all_genes)
 #filter to only significant results
 result <- result %>% filter(p_adj < 0.05)
-#result %>% write.csv("data/bcin_expr/DEG/CaUp_GO.csv", row.names = F)
+result %>% write.csv("data/bcin_expr/DEG/CaUp_GO.csv", row.names = F)
 
 ### Run GO enrichment on Sl-specific genes vs all Botrytis genes -------------------------------------------
 
@@ -90,12 +90,12 @@ deg_Sl <- deg %>% filter(significance == "Tomato Upregulated") %>% pull(gene)
 result <- run_topGO(deg_Sl, all_genes)
 #filter to only significant results
 result <- result %>% filter(p_adj < 0.05)
-#result %>% write.csv("data/bcin_expr/DEG/SlUp_GO.csv", row.names = F)
+result %>% write.csv("data/bcin_expr/DEG/SlUp_GO.csv", row.names = F)
 
 ### Run GO enrichment on 972 host-specific genes vs all Botrytis genes ----------------------------------------
 
 #get host-specific only genes
-host_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %>%
+host_spec <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_anova.csv") %>%
 	dplyr::select(gene, variable, p_adj) %>%
 	filter(variable != "intercept") %>%
 	pivot_wider(names_from = "variable",
@@ -106,12 +106,12 @@ host_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %
 result <- run_topGO(host_spec, all_genes)
 #filter to only significant results
 result <- result %>% filter(p_adj < 0.05)
-#result %>% write.csv("data/bcin_expr/host_iso_specific/hostonlyUp_GO.csv", row.names = F)
+result %>% write.csv("data/bcin_expr/host_iso_specific/hostonlyUp_GO.csv", row.names = F)
 
 ### Run GO enrichment on 798 iso-specific genes vs all Botrytis genes -----------------------------------------
 
 #get iso-specific only genes
-iso_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %>%
+iso_spec <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_anova.csv") %>%
 	dplyr::select(gene, variable, p_adj) %>%
 	filter(variable != "intercept") %>%
 	pivot_wider(names_from = "variable",
@@ -122,12 +122,12 @@ iso_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %>
 result <- run_topGO(iso_spec, all_genes)
 #filter to only significant results
 result <- result %>% filter(p_adj < 0.05)
-#result %>% write.csv("data/bcin_expr/host_iso_specific/isoonlyUp_GO.csv", row.names = F)
+result %>% write.csv("data/bcin_expr/host_iso_specific/isoonlyUp_GO.csv", row.names = F)
 
 ### Run GO enrichment on all iso-specific genes vs all Botrytis genes -------------------------
 
 #get all iso-specific genes
-iso_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %>%
+iso_spec <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_anova.csv") %>%
 	dplyr::select(gene, variable, p_adj) %>%
 	filter(variable != "intercept") %>%
 	pivot_wider(names_from = "variable",
@@ -144,7 +144,7 @@ result %>% write.csv("data/bcin_expr/host_iso_specific/isoallUp_GO.csv", row.nam
 ### Run GO enrichment on all host-specific genes vs all Botrytis genes -------------------------
 
 #get all host-specific genes
-host_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %>%
+host_spec <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_anova.csv") %>%
 	dplyr::select(gene, variable, p_adj) %>%
 	filter(variable != "intercept") %>%
 	pivot_wider(names_from = "variable",
@@ -161,7 +161,7 @@ result %>% write.csv("data/bcin_expr/host_iso_specific/hostallUp_GO.csv", row.na
 ### Run GO enrichment on all interaction-specific genes vs all Botrytis genes -------------------------
 
 #get all host-specific genes
-interaction_spec <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_anova.csv") %>%
+interaction_spec <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_anova.csv") %>%
 	dplyr::select(gene, variable, p_adj) %>%
 	filter(variable != "intercept") %>%
 	pivot_wider(names_from = "variable",

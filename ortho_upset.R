@@ -5,7 +5,7 @@ library(tidyverse)
 library(ComplexUpset)
 
 ##### ------------- Set up data -------------------------
-df <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_anova.csv") %>%
+df <- read.csv("data/ortho/ortho_modelGAUSSIAN_20260203/ortho_anova.csv") %>%
 	dplyr::select(gene, variable, p_adj) %>%
 	filter(variable != "intercept")
 
@@ -22,9 +22,9 @@ sig_df <- df_wide %>%
 		`Isolate` = iso_name < 0.05,
 		`Host Species X Isolate` = `genotype:iso_name` < 0.05
 	) %>%
-	select(gene, `Host Species`, `Isolate`, `Host Species X Isolate`)
+	dplyr::select(gene, `Host Species`, `Isolate`, `Host Species X Isolate`)
 
-sig_df <- sig_df %>% rename("Host Species\nX Isolate" = `Host Species X Isolate`)
+sig_df <- sig_df %>% dplyr::rename("Host Species\nX Isolate" = `Host Species X Isolate`)
 
 ### Plot ============================================================
 upset(
@@ -32,7 +32,7 @@ upset(
 	intersect = c("Host Species", "Isolate", "Host Species\nX Isolate"),
 	annotations = list(),
 	base_annotations = list(
-		'Significant Botrytis Genes' = intersection_size(text = list(size = 3))
+		'Significant Host Orthologs' = intersection_size(text = list(size = 3))
 	),
 	width_ratio = c(0, 1),        # removes left panel entirely
 	set_sizes = FALSE             # <- this removes the "Set Size" title

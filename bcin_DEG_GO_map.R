@@ -1,15 +1,13 @@
 ### Presence absence matrix of Botrytis GO terms upregulated on either host
 ### January 2026 AJM
 
-df <- read.csv("data/bcin_expr/DEG/GO_integrated.csv")
+#df <- read.csv("data/bcin_expr/DEG/GO_integrated.csv")
 
-go_pepper <- df %>%
-	filter(host_upregulated == "Pepper") %>%
+go_pepper <- read.csv("data/bcin_expr/DEG/CaUp_GO.csv") %>%
 	pull(Term)
-go_tomato <- df %>%
-	filter(host_upregulated == "Tomato") %>%
+go_tomato <- read.csv("data/bcin_expr/DEG/SlUp_GO.csv") %>%
 	pull(Term)
-all_go <- sort(unique(df$Term))
+all_go <- c(go_pepper, go_tomato) %>% sort() %>% unique()
 
 go_pa <- data.frame(GO = all_go,
 										Pepper = all_go %in% go_pepper,

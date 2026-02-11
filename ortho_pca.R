@@ -10,8 +10,12 @@ library(RColorBrewer)
 library(ggrepel)
 
 # ------------- PCA - 2026-01-21 --------------------
-df <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_adjusted_emmeans.csv") %>%
+df <- read.csv("data/ortho/ortho_modelGAUSSIAN_20260203/ortho_adjusted_emmeans.csv") %>%
 	dplyr::select(!SE)
+
+#Also tried with the NB model
+# df <- read.csv("data/ortho/ortho_model_20260203/ortho_adjusted_emmeans.csv") %>%
+# 	dplyr::select(!SE)
 
 #Check for any NAs (needs to be FALSE)
 any(is.na(df))
@@ -23,7 +27,7 @@ df <- df %>%
 
 #Check for any NAs (needs to be FALSE)
 any(is.na(df))
-colSums(is.na(df) > 0) #see by column
+#colSums(is.na(df) > 0) #see by column
 
 
 ######### PCA
@@ -55,8 +59,8 @@ ggplot(data = pca_df, aes(PC1, PC2)) + geom_point()
 pca_df <- cbind(df[,c(1,2)], pca_df)
 
 pca_df <- pca_df %>%
-	mutate(species = if_else(genotype == "Ca", "Pepper", "Tomato")) %>% 
-	select(iso_name, species, genotype, everything())
+	mutate(species = if_else(genotype == "tomato", "Tomato", "Pepper")) %>%
+	select(iso_name, species, everything())
 
 #PC1 x PC2
 pca_plot <- pca_df %>% ggplot(aes(PC1, PC2)) +
@@ -68,7 +72,7 @@ pca_plot <- pca_df %>% ggplot(aes(PC1, PC2)) +
 
 pca_plot
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_geno.png", width = 6, height = 5)
+#ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_species.png", width = 6, height = 5)
 
 # ----------------- PCA colored by lesion size ------------------
 
@@ -82,7 +86,7 @@ pheno <- read.csv("data/Pheno/Alleudi_long_format_72iso.csv") %>%
 
 #join pheno data to PCA table
 pca_pheno_df <- left_join(pca_df, pheno, by = c("iso_name", "species")) %>%
-	select(iso_name, species, genotype, Lesion_size, everything())
+	select(iso_name, species, Lesion_size, everything())
 
 pca_pheno_df$Lesion_size <- as.integer(pca_pheno_df$Lesion_size)
 
@@ -96,7 +100,7 @@ pca_pheno_plot <- pca_pheno_df %>% ggplot(aes(PC1, PC2, fill = Lesion_size)) +
 
 pca_pheno_plot
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_Pheno.png", width = 6, height = 5)
+#ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_Pheno.png", width = 6, height = 5)
 
 ####### PCA with both host species colored by lesion size ##########
 
@@ -111,7 +115,8 @@ pca_pheno_df %>%
 	labs(fill = expression("Lesion Size (mm"^2*")")) +
 	theme_minimal()
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_genopheno.png", width = 5, height = 4)
+ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_genopheno.png", width = 5, height = 4)
+#ggsave("figures/ortho_transcriptome/PCA/nb/ortho_PCA_genopheno.png", width = 5, height = 4)
 
 # #Colored by log10 lesion size
 # pca_pheno_df %>%
@@ -163,7 +168,7 @@ pca_pheno_df %>%
 	labs(fill = expression("Lesion Size (mm"^2*")")) +
 	theme_minimal()
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_PC3.png", width = 5, height = 4)
+#ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_PC3.png", width = 5, height = 4)
 
 pca_pheno_df %>%
 	ggplot(aes(PC1, PC4, fill = Lesion_size, shape = species)) +
@@ -176,7 +181,7 @@ pca_pheno_df %>%
 	labs(fill = expression("Lesion Size (mm"^2*")")) +
 	theme_minimal()
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_PC4.png", width = 5, height = 4)
+#ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_PC4.png", width = 5, height = 4)
 
 pca_pheno_df %>%
 	ggplot(aes(PC1, PC5, fill = Lesion_size, shape = species)) +
@@ -189,7 +194,7 @@ pca_pheno_df %>%
 	labs(fill = expression("Lesion Size (mm"^2*")")) +
 	theme_minimal()
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_PC5.png", width = 5, height = 4)
+ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_PC5.png", width = 5, height = 4)
 
 
 
@@ -225,7 +230,7 @@ pca_count_df %>%
 	labs(fill = "Botrytis \ntranscript \nabundance") +
 	theme_minimal()
 
-ggsave("figures/bcin_transcriptome/PCA/bcin_PCA_rdcount.png", width = 5, height = 4)
+ggsave("figures/ortho_transcriptome/PCA/ortho_PCA_rdcount.png", width = 5, height = 4)
 
 #check botrytis read percentage
 pca_count_df %>%
@@ -255,8 +260,37 @@ pca_count_df %>%
 
 # #ggsave("figures/bcin_transcriptome/bcin_PCA_rdcount_lowlabeled.png", width = 5, height = 4)
 
-### 9/23/25 statistical test - PCs correlation with total read count -------------------------------------3
+### 9/23/25 statistical test - PCs correlation with total read count -------------------------------------
 
 model <- lm(bcin_count ~ PC1 + PC2, data = pca_count_df)
 
 anova(model)
+
+### 2/5/26 pull out loading scores for PC4 ----------------------------
+
+#Values in `rotation` = how strongly each gene drives PC4
+pc4_loadings <- pca_result$rotation[, 4]
+pc4_loadings <- sort(abs(pc4_loadings), decreasing = T)
+
+#pull out top 50
+pc4_50 <- head(pc4_loadings, 50)
+
+pc4_df <- data.frame(
+	ortholog = names(pc4_loadings),
+	loading_pc4 = pc4_loadings,
+	row.names = NULL) %>%
+	mutate(ca_gene = str_extract(ortholog, "^[^_]+"),
+				 sl_gene = str_extract(ortholog, "[^_]+$"))
+
+sl_annot <- read.csv("data/gene_descriptions/tomato_annotations.csv")
+
+pc4_df <- pc4_df %>%
+	left_join(sl_annot, by = join_by("sl_gene" == "gene_ID"))
+
+pc4_df %>%
+	slice_max(order_by = loading_pc4, n = 10) %>%
+	ggplot(aes(x=fct_reorder(description, loading_pc4, .desc = T), y=loading_pc4)) +
+	geom_bar(stat = "identity") +
+	theme(axis.text.x = element_text(angle = 65, hjust = 1)) +
+	xlab(NULL)
+ggsave("figures/ortho_transcriptome/PCA/PC4_loading_top10.png", width = 5, height = 5)

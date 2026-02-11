@@ -10,8 +10,12 @@ library(RColorBrewer)
 library(ggrepel)
 
 # ------------- PCA - 2026-01-21 --------------------
-df <- read.csv("data/bcin_expr/bcin_genemodel_20260115/bcin_adjusted_emmeans.csv") %>%
+df <- read.csv("data/bcin_expr/bcin_genemodelGAUSSIAN_20260205/bcin_adjusted_emmeans.csv") %>%
 	dplyr::select(!SE)
+
+#remove outlier gene
+df <- df %>%
+	filter(gene != "Bcin13g02610")
 
 #Check for any NAs (needs to be FALSE)
 any(is.na(df))
@@ -260,3 +264,33 @@ pca_count_df %>%
 model <- lm(bcin_count ~ PC1 + PC2, data = pca_count_df)
 
 anova(model)
+
+### 2/6/26 pull out loading scores for PC1 ----------------------------
+
+#Did this while including FresaSD outliers
+#Want to see which genes are driving the outlying isolates
+
+#Values in `rotation` = how strongly each gene drives PC4
+pc1_loadings <- pca_result$rotation[, 1]
+pc1_loadings <- sort(abs(pc1_loadings), decreasing = T)
+
+#pull out top 50
+pc1_50 <- head(pc1_loadings, 50)
+
+pc1_df <- data.frame(
+	gene = names(pc1_loadings),
+	loading_pc1 = pc1_loadings,
+	row.names = NULL)
+
+annot <- read.csv("data/gene_descriptions/Bcin_Annotations_Full_transcript.csv")
+
+pc1_df <- pc1_df %>%
+	left_join(annot, by = join_by("gene" == "X.Gene.ID."))
+
+pc1_df %>%
+	slice_max(order_by = loading_pc1, n = 10) %>%
+	ggplot(aes(x=fct_reorder(gene, loading_pc1, .desc = T), y=loading_pc1)) +
+	geom_bar(stat = "identity") +
+	theme(axis.text.x = element_text(angle = 65, hjust = 1)) +
+	xlab(NULL)
+#ggsave("figures/ortho_transcriptome/PCA/PC1_loading_top10.png", width = 5, height = 5)
