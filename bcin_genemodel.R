@@ -206,8 +206,8 @@ failed_genes_df <- data.frame(failed_gene = failed_genes, stringsAsFactors = FAL
 #write out results
 message("Writing results to output directory: ", output_dir)
 dir.create(output_dir, recursive = T)
-write.csv(emm_log, paste0(output_dir, "bcin_adjusted_emmeans_log.csv"), row.names = F)
-write.csv(emm_resp, paste0(output_dir, "bcin_adjusted_emmeans_response.csv"), row.names = F)
+write.csv(emm_log_all, paste0(output_dir, "bcin_adjusted_emmeans_log.csv"), row.names = F)
+write.csv(emm_resp_all, paste0(output_dir, "bcin_adjusted_emmeans_response.csv"), row.names = F)
 write.csv(anova_corrected, paste0(output_dir, "bcin_anova.csv"), row.names = F)
 write.csv(DEG_all, paste0(output_dir, "bcin_DEGs.csv"), row.names = F)
 write.csv(failed_genes_df, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)
