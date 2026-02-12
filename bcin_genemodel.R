@@ -1,6 +1,6 @@
 ##### Bcin gene model - Solanaceae
 ##### For comparison of Bcin gene expression across 2 hosts
-##### January 2026 AJM
+##### February 2026 AJM
 
 ### Define paths from arguments =====================
 args <- commandArgs(trailingOnly = TRUE)
@@ -102,21 +102,29 @@ analyze_gene <- function(gene, df) {
 			tot_var = sum(genotype, iso_name, `genotype:iso_name`, intercept)
 		) %>%
 		mutate(across(-tot_var, ~ .x / tot_var)) %>%
-		select(-tot_var) %>%
+		dplyr::select(-tot_var) %>%
 		pivot_longer(everything(), names_to = "variable", values_to = "variance")
 	
 	anova <- full_join(anova, var_sums, by = "variable") %>%
-		select(gene, everything())
+		dplyr::select(gene, everything())
 	anova$gene <- gene
 	
 	## ---- EMMs ----
-	emm_sum <- emmeans(model, ~ iso_name + genotype, type = "response") %>%
+	emm_log <- emmeans(model, ~ iso_name + genotype) %>%
 		summary() %>%
 		as.data.frame() %>%
-		select(iso_name, genotype, emmean, SE) %>%
+		#dplyr::select(iso_name, genotype, emmean, SE) %>%
+		dplyr::rename(emmean_log = emmean) %>%
+		mutate(gene = gene)
+	emm_resp <- emmeans(model, ~ iso_name + genotype, type = "response") %>%
+		summary() %>%
+		as.data.frame() %>%
+		#dplyr::select(iso_name, genotype, response, SE) %>%
+		dplyr::rename(emmean_response = response) %>%
 		mutate(gene = gene)
 	
 	## ---- DEG ----
+	#derived from link scale because we are getting fold changes.
 	DEG <- emmeans(model, specs = "genotype") %>%
 		contrast(method = "revpairwise") %>%
 		summary() %>%
@@ -125,11 +133,12 @@ analyze_gene <- function(gene, df) {
 			SE = SE / log(2),
 			gene = gene
 		) %>%
-		select(gene, everything(), -estimate)
+		dplyr::select(gene, everything(), -estimate)
 	
 	list(
 		anova = anova,
-		emm = emm_sum,
+		emm_log = emm_log,
+		emm_resp = emm_resp,
 		DEG = DEG
 	)
 }
@@ -165,7 +174,8 @@ for (gene in genes) {
 
 # Combine outputs
 anova_all <- bind_rows(lapply(results, `[[`, "anova"))
-emm_all   <- bind_rows(lapply(results, `[[`, "emm"))
+emm_log_all   <- bind_rows(lapply(results, `[[`, "emm_log"))
+emm_resp_all   <- bind_rows(lapply(results, `[[`, "emm_resp"))
 DEG_all   <- bind_rows(lapply(results, `[[`, "DEG"))
 
 #Do FDR correction (BH)
@@ -183,7 +193,7 @@ rownames(anova_corrected) <- NULL
 
 #Replace DEG p value with anova genotype p value
 #remove DEG p value
-DEG_all <- subset(DEG_all, select = -p.value)
+DEG_all <- subset(DEG_all, dplyr::select = -p.value)
 #get anova p values
 anova_ps <- anova_corrected %>% filter(variable == "genotype") %>%
 	dplyr::select(gene, p_adj)
@@ -196,7 +206,8 @@ failed_genes_df <- data.frame(failed_gene = failed_genes, stringsAsFactors = FAL
 #write out results
 message("Writing results to output directory: ", output_dir)
 dir.create(output_dir, recursive = T)
-write.csv(emm_all, paste0(output_dir, "bcin_adjusted_emmeans.csv"), row.names = F)
+write.csv(emm_log, paste0(output_dir, "bcin_adjusted_emmeans_log.csv"), row.names = F)
+write.csv(emm_resp, paste0(output_dir, "bcin_adjusted_emmeans_response.csv"), row.names = F)
 write.csv(anova_corrected, paste0(output_dir, "bcin_anova.csv"), row.names = F)
 write.csv(DEG_all, paste0(output_dir, "bcin_DEGs.csv"), row.names = F)
 write.csv(failed_genes_df, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)
