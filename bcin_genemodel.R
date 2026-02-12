@@ -193,7 +193,7 @@ rownames(anova_corrected) <- NULL
 
 #Replace DEG p value with anova genotype p value
 #remove DEG p value
-DEG_all <- subset(DEG_all, dplyr::select = -p.value)
+DEG_all <- subset(DEG_all, select = -p.value)
 #get anova p values
 anova_ps <- anova_corrected %>% filter(variable == "genotype") %>%
 	dplyr::select(gene, p_adj)
