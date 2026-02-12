@@ -1,6 +1,8 @@
 ### Improving host annotation files and fixing related count inputs
 ### January 2026 AJM
 
+library(dplyr)
+
 ### ------------------ Pepper -------------------------------------------------
 ca <- read.csv("data/gene_descriptions/fromRitu_notusing/pepper_cleaned_gene_annotations.csv")
 
@@ -21,13 +23,13 @@ ca <- ca %>%
 
 #These columns are exactly the same so we can get rid of one
 all(ca$Name == ca$gene)
-ca <- ca %>% select(!gene)
+ca <- ca %>% dplyr::select(!gene)
 
 #There is no variation in these columns so can remove
-ca <- ca %>% select(!c("score", "phase", "gbkey"))
+ca <- ca %>% dplyr::select(!c("score", "phase", "gbkey"))
 
 #I am thinking these are not very informative so cleaning these out too
-ca <- ca %>% select(!c("partial", "start_range", "end_range", "exception"))
+ca <- ca %>% dplyr::select(!c("partial", "start_range", "end_range", "exception"))
 
 #Changing column to numerical ID in case I need it
 ca$ID_number <- ca$Dbxref
@@ -82,21 +84,43 @@ go_by_gene <- left_join(go_by_gene, go_split, by = "GeneID")
 go_by_gene$GeneID <- as.character(go_by_gene$GeneID)
 ca <- left_join(ca, go_by_gene, by = join_by("ID_number" == "GeneID"))
 
-#adding protein IDs
-#NOTE: some gene IDs have multiple protein isoforms so this creates duplicate rows for each  gene.
-#may want to rethink this a little
+#adding protein IDs. Removing additional protein isoforms because I don't think they have a lot of different annotation info
 prot <- read.csv("data/gene_descriptions/pepper_proteinID_key.csv") %>%
-	select(!transcript_id) %>%
-	rename(protein_ID = protein_id)
+	dplyr::select(!transcript_id) %>%
+	dplyr::rename(protein_ID = protein_id) %>%
+	distinct(gene_id, .keep_all = T) #just keeping the first occurrence of each gene ID/protein isoform
 ca <- left_join(ca, prot, by = join_by("gene_ID" == "gene_id"))
 
-#writing for now
-#ca %>% write.csv("data/gene_descriptions/pepper_annotations.csv", row.names = F)
-
-#next: add descriptions
-cavsl <- read.csv("data/gene_descriptions/blastp/Pepper_v_Tomato_blastp.csv")
-cavat <- read.csv("data/gene_descriptions/blastp/Pepper_v_Arabidopsis_blastp.csv")
+#next: add blastp descriptions
+#some blastp results haev multiple matches. Keep only the one with the highest percent identity
+cavsl <- read.csv("data/gene_descriptions/blastp/Pepper_v_Tomato_blastp.csv") %>%
+		group_by(qseqid) %>%                 # group by qseqid
+		slice_max(tomato_pident, n = 1) %>%  # keep row(s) with max
+		ungroup() %>%
+		distinct(qseqid, .keep_all = T) #this is to get rid of any remaining ones that might have the same % identity
+cavat <- read.csv("data/gene_descriptions/blastp/Pepper_v_Arabidopsis_blastp.csv") %>%
+	group_by(qseqid) %>%                 # group by qseqid
+	slice_max(arabidopsis_pident, n = 1) %>%  # keep row(s) with max
+	ungroup() %>%
+	distinct(qseqid, .keep_all = T) %>% #this is to get rid of any remaining ones that might have the same % identity
+	mutate(
+		arabidopsis_symbol = arabidopsis_description %>% #separate the symbol and description string
+			str_extract("\\|[^|]*\\|") %>%
+			str_remove_all("\\|") %>%
+			str_remove("^\\s*Symbols:\\s*") %>%
+			str_trim() %>%
+			na_if(""),
+		
+		arabidopsis_description = arabidopsis_description %>%
+			str_remove("\\|[^|]*\\|\\s*") %>%
+			str_trim()
+	)
 blastp <- full_join(cavsl, cavat, by = "qseqid")
+
+ca <- left_join(ca, blastp, by = join_by(protein_ID == qseqid))
+
+#writing for now
+ca %>% write.csv("data/gene_descriptions/pepper_annotations.csv", row.names = F)
 
 ### ------------------ Tomato -------------------------------------------------
 rm(list=ls())
@@ -120,13 +144,13 @@ sl <- sl %>%
 
 #These columns are exactly the same so we can get rid of one
 all(sl$Name == sl$gene)
-sl <- sl %>% select(!gene)
+sl <- sl %>% dplyr::select(!gene)
 
 #There is no variation in these columns so can remove
-sl <- sl %>% select(!c("score", "phase", "gbkey"))
+sl <- sl %>% dplyr::select(!c("score", "phase", "gbkey"))
 
 #I am thinking these are not very informative so cleaning these out too
-sl <- sl %>% select(!c("partial", "start_range", "end_range", "exception"))
+sl <- sl %>% dplyr::select(!c("partial", "start_range", "end_range", "exception"))
 
 #Changing column to numerical ID in case I need it
 sl$ID_number <- sl$Dbxref
@@ -186,8 +210,8 @@ sl <- left_join(sl, go_by_gene, by = join_by("ID_number" == "GeneID"))
 
 #adding protein IDs. Removing additional protein isoforms because I don't think they have a lot of different annotation info
 prot <- read.csv("data/gene_descriptions/tomato_proteinID_key.csv") %>%
-	select(!transcript_id) %>%
-	rename(protein_ID = protein_id) %>%
+	dplyr::select(!transcript_id) %>%
+	dplyr::rename(protein_ID = protein_id) %>%
 	distinct(gene_id, .keep_all = T) #just keeping the first occurrence of each gene ID/protein isoform
 
 sl <- left_join(sl, prot, by = join_by("gene_ID" == "gene_id"))
@@ -198,7 +222,19 @@ slvat <- read.csv("data/gene_descriptions/blastp/Tomato_v_Arabidopsis_blastp.csv
 	group_by(qseqid) %>%                 # group by qseqid
 	slice_max(arabidopsis_pident, n = 1) %>%  # keep row(s) with max arabidopsis_pident
 	ungroup() %>%
-	distinct(qseqid, .keep_all = T) #this is to get rid of any remaining ones that might have the same % identity
+	distinct(qseqid, .keep_all = T) %>% #this is to get rid of any remaining ones that might have the same % identity
+	mutate(
+		arabidopsis_symbol = arabidopsis_description %>% #separate the symbol and description string
+			str_extract("\\|[^|]*\\|") %>%
+			str_remove_all("\\|") %>%
+			str_remove("^\\s*Symbols:\\s*") %>%
+			str_trim() %>%
+			na_if(""),
+		
+		arabidopsis_description = arabidopsis_description %>%
+			str_remove("\\|[^|]*\\|\\s*") %>%
+			str_trim()
+	)
 
 sl <- left_join(sl, slvat, by = join_by(protein_ID == qseqid))
 

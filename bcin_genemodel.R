@@ -75,7 +75,7 @@ analyze_gene <- function(gene, df) {
 		"~ genotype + iso_name + genotype * iso_name + (1|tray) + (1|seq_batch)"
 	))
 	
-	model <- glmmTMB(formula, data = df, family = gaussian) %>%
+	model <- glmmTMB(formula, data = df, family = nbinom2) %>%
 		suppressMessages()
 	
 	#collect convergence note
@@ -110,7 +110,7 @@ analyze_gene <- function(gene, df) {
 	anova$gene <- gene
 	
 	## ---- EMMs ----
-	emm_sum <- emmeans(model, ~ iso_name + genotype) %>%
+	emm_sum <- emmeans(model, ~ iso_name + genotype, type = "response") %>%
 		summary() %>%
 		as.data.frame() %>%
 		select(iso_name, genotype, emmean, SE) %>%
