@@ -153,7 +153,7 @@ df_long <- df %>%
 							 values_to = "CPM")
 genes <- unique(df_long$gene)
 
-genes <- genes[1:10] #subset for testing
+#genes <- genes[1:10] #subset for testing
 
 #setup outputs
 results <- list()
