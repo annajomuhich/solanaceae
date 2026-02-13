@@ -54,7 +54,7 @@ analyze_gene <- function(gene, df) {
        (1 | tray) + (1 | seq_batch)"
 	))
 
-	model <- glmmTMB(formula, data = df, family = nbinom2) %>%
+	model <- glmmTMB(formula, data = df, family = gaussian) %>%
 		suppressMessages()
 	
 	#collect convergence note
