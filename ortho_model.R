@@ -102,7 +102,7 @@ analyze_gene <- function(gene, df) {
 		summary() %>%
 		as.data.frame() %>%
 		#dplyr::select(iso_name, genotype, response, SE) %>%
-		dplyr::rename(emmean_response = response) %>%
+		dplyr::rename(emmean_response = emmean) %>%
 		mutate(gene = gene)
 	
 	## ---- DEG ----
