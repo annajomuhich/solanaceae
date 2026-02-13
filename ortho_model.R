@@ -5,10 +5,8 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 #assign input files to specific variables
-host1_counts_file <- args[1]		# Counts file (host_norm_counts_expressed.csv)
-host2_counts_file <- args[2]   # Counts file for other host (host_norm_counts_expressed.csv)
-ortho_file <- args[3]
-output_dir <- args[4]     # Output directory
+ortho_counts_file <- args[1]   # Ortholog counts
+output_dir <- args[2]     # Output directory
 
 # Ensure output directory ends with a slash (for safe concatenation)
 if (!grepl("/$", output_dir)) {
@@ -27,67 +25,21 @@ library(car)
 library(glmmTMB)
 
 #load count file for each host
-message("Loading host1 counts file: ", host1_counts_file)
-host1 <- read.csv(host1_counts_file) %>%
-	dplyr::select(iso_name, tray, seq_batch, gene, cpm)
-message("Loading host2 counts file: ", host2_counts_file)
-host2 <- read.csv(host2_counts_file) %>%
-	dplyr::select(iso_name, tray, seq_batch, gene, cpm)
-message("Loading ortholog file: ", ortho_file)
-ortho <- read.csv(ortho_file) %>%
-	select(!Orthogroup) %>%
-	mutate(ortholog = paste0(Ca, "_", Sl))
-
-#Join orthologs with data
-host1 <- left_join(host1, ortho, join_by(gene == Ca)) %>%
-	filter(!is.na(ortholog)) %>% #remove counts for non-orthologs
-	select(!Sl) %>%
-	mutate(genotype = "pepper")
-host2 <- left_join(host2, ortho, join_by(gene == Sl)) %>%
-	filter(!is.na(ortholog)) %>%
-	select(!Ca) %>%
-	mutate(genotype = "tomato")
-
-colnames(host1) == colnames(host2)
-df_long <- rbind(host1, host2) %>%
-	select(!gene)
-
-#check for NA values in count data (needs to be FALSE)
-any(is.na(df_long$cpm))
-
-#make infected column
-df_long <- df_long %>%
-	mutate(infected = if_else(iso_name == "Mock_48h", "no", "yes")) %>%
-	select(genotype, iso_name, infected, everything())
+message("Loading ortholog counts file: ", ortho_counts_file)
+df_long <- read.csv(ortho_counts_file)
 
 df <- df_long %>%
 	pivot_wider(names_from = ortholog,
 							values_from = cpm)
-
+	
 #convert categorical variables to factor
 head(df)
 df$genotype <- as.factor(df$genotype)
 df$iso_name <- as.factor(df$iso_name)
 df$tray <- as.factor(df$tray)
 df$seq_batch <- as.factor(df$seq_batch)
+df$infected <- as.factor(df$infected)
 head(df) 
-
-### Remove genes not expressed in both hosts ======================
-
-#Check for NAs 
-anyNA(df)
-colSums(is.na(df))
-#flag NAs
-na_cols <- colSums(is.na(df)) > 0
-#get list of genes to remove
-removed_cols <- names(df)[na_cols]
-#remove genes
-message(
-	"Removing the following ", length(removed_cols),
-	" genes (not present when infecting both hosts):\n",
-	paste(removed_cols, collapse = "\n")
-)
-df <- df[, !na_cols]
 
 ### Define model function ======================
 
@@ -102,7 +54,7 @@ analyze_gene <- function(gene, df) {
        (1 | tray) + (1 | seq_batch)"
 	))
 
-	model <- glmmTMB(formula, data = df, family = gaussian) %>%
+	model <- glmmTMB(formula, data = df, family = nbinom2) %>%
 		suppressMessages()
 	
 	#collect convergence note
@@ -132,18 +84,25 @@ analyze_gene <- function(gene, df) {
 					tot_var = sum(genotype, iso_name, `genotype:iso_name`, intercept)
 				) %>%
 		mutate(across(-tot_var, ~ .x / tot_var)) %>%
-		select(-tot_var) %>%
+		dplyr::select(-tot_var) %>%
 		pivot_longer(everything(), names_to = "variable", values_to = "variance")
 	
 	anova <- full_join(anova, var_sums, by = "variable") %>%
-		select(gene, everything())
+		dplyr::select(gene, everything())
 	anova$gene <- gene
 	
 	## ---- EMMs ----
-	emm_sum <- emmeans(model, ~ iso_name + genotype) %>%
+	emm_log <- emmeans(model, ~ iso_name + genotype) %>%
 		summary() %>%
 		as.data.frame() %>%
-		select(iso_name, genotype, emmean, SE) %>%
+		#dplyr::select(iso_name, genotype, emmean, SE) %>%
+		dplyr::rename(emmean_log = emmean) %>%
+		mutate(gene = gene)
+	emm_resp <- emmeans(model, ~ iso_name + genotype, type = "response") %>%
+		summary() %>%
+		as.data.frame() %>%
+		#dplyr::select(iso_name, genotype, response, SE) %>%
+		dplyr::rename(emmean_response = response) %>%
 		mutate(gene = gene)
 	
 	## ---- DEG ----
@@ -155,11 +114,12 @@ analyze_gene <- function(gene, df) {
 			SE = SE / log(2),
 			gene = gene
 		) %>%
-		select(gene, everything(), -estimate)
+		dplyr::select(gene, everything(), -estimate)
 	
 	list(
 		anova = anova,
-		emm = emm_sum,
+		emm_log = emm_log,
+		emm_resp = emm_resp,
 		DEG = DEG
 	)
 }
@@ -168,14 +128,10 @@ analyze_gene <- function(gene, df) {
 ### Run function across genes ===================================
 
 #get list of genes to run
-df_long <- df %>%
-	pivot_longer(cols = starts_with("LOC"),
-							 names_to = "gene",
-							 values_to = "CPM")
-genes <- unique(df_long$gene)
+genes <- unique(df_long$ortholog)
 
 #subset for testing
-#genes <- genes[1100:1110]
+genes <- genes[1100:1110]
 
 #setup outputs
 results <- list()
@@ -194,7 +150,8 @@ for (gene in genes) {
 
 # Combine outputs
 anova_all <- bind_rows(lapply(results, `[[`, "anova"))
-emm_all   <- bind_rows(lapply(results, `[[`, "emm"))
+emm_log_all   <- bind_rows(lapply(results, `[[`, "emm_log"))
+emm_resp_all   <- bind_rows(lapply(results, `[[`, "emm_resp"))
 DEG_all   <- bind_rows(lapply(results, `[[`, "DEG"))
 
 #Do FDR correction (BH)
@@ -224,7 +181,8 @@ failed_genes_df <- data.frame(failed_gene = failed_genes, stringsAsFactors = FAL
 
 message("Writing results to output directory: ", output_dir)
 dir.create(output_dir, recursive = T)
-write.csv(emm_all, paste0(output_dir, "ortho_adjusted_emmeans.csv"), row.names = F)
+write.csv(emm_log_all, paste0(output_dir, "ortho_adjusted_emmeans_log.csv"), row.names = F)
+write.csv(emm_resp_all, paste0(output_dir, "ortho_adjusted_emmeans_response.csv"), row.names = F)
 write.csv(anova_corrected, paste0(output_dir, "ortho_anova.csv"), row.names = F)
 write.csv(DEG_all, paste0(output_dir, "ortho_DEGs.csv"), row.names = F)
 write.csv(failed_genes_df, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)
