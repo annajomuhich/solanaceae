@@ -131,7 +131,7 @@ analyze_gene <- function(gene, df) {
 genes <- unique(df_long$ortholog)
 
 #subset for testing
-genes <- genes[1100:1110]
+#genes <- genes[1100:1110]
 
 #setup outputs
 results <- list()
