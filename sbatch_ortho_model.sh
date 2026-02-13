@@ -12,13 +12,10 @@
 module load R
 
 # Define input file paths
-COUNTS_FILE1=$1
-COUNTS_FILE2=$2
-ORTHO_FILE=$3
-OUTPUT_DIR=$4
+COUNTS_FILE=$1
+OUTPUT_DIR=$2
 
 
 Rscript ~/solanaceae/ortho_model.R \
-"$COUNTS_FILE1" "$COUNTS_FILE2" \
-"$ORTHO_FILE" \
+"$COUNTS_FILE" \
 "$OUTPUT_DIR"
